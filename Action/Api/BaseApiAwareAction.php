@@ -1,5 +1,5 @@
 <?php
-namespace Payum\Skeleton\Action\Api;
+namespace Payum\Swipe\Action\Api;
 
 use Payum\Core\Action\ActionInterface;
 use Payum\Core\ApiAwareInterface;

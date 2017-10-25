@@ -1,17 +1,17 @@
 <?php
-namespace Payum\Skeleton;
+namespace Payum\Swipe;
 
-use Payum\Skeleton\Action\AuthorizeAction;
-use Payum\Skeleton\Action\CancelAction;
-use Payum\Skeleton\Action\ConvertPaymentAction;
-use Payum\Skeleton\Action\CaptureAction;
-use Payum\Skeleton\Action\NotifyAction;
-use Payum\Skeleton\Action\RefundAction;
-use Payum\Skeleton\Action\StatusAction;
+use Payum\Swipe\Action\AuthorizeAction;
+use Payum\Swipe\Action\CancelAction;
+use Payum\Swipe\Action\ConvertPaymentAction;
+use Payum\Swipe\Action\CaptureAction;
+use Payum\Swipe\Action\NotifyAction;
+use Payum\Swipe\Action\RefundAction;
+use Payum\Swipe\Action\StatusAction;
 use Payum\Core\Bridge\Spl\ArrayObject;
 use Payum\Core\GatewayFactory;
 
-class SkeletonGatewayFactory extends GatewayFactory
+class SwipeGatewayFactory extends GatewayFactory
 {
     /**
      * {@inheritDoc}

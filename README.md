@@ -1,4 +1,4 @@
-# Skeleton
+# Swipe Payum bundle
 
 The Payum extension to rapidly build new extensions.
 
