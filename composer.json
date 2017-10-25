@@ -32,6 +32,7 @@
     "autoload": {
         "psr-0": { "Payum\\Swipe": "" }
     },
+
     "target-dir": "Payum/Swipe",
     "extra": {
         "branch-alias": {
