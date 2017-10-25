@@ -30,9 +30,9 @@
         "bin-dir": "bin"
     },
     "autoload": {
-        "psr-0": { "InfiniteSoftware\\SwipePayum": "" }
+        "psr-0": { "Payum\\Swipe": "" }
     },
-    "target-dir": "InfiniteSoftware/SwipePayum",
+    "target-dir": "Payum/Swipe",
     "extra": {
         "branch-alias": {
             "dev-master": "1.4-dev"
