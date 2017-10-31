@@ -19,7 +19,13 @@ class StatusAction implements ActionInterface
 
         $model = ArrayObject::ensureArrayObject($request->getModel());
 
-        throw new \LogicException('Not implemented');
+        if ($request->isNew()) {
+            $request->markCaptured();
+        }
+
+        if ($request->isUnknown()) {
+            $request->markNew();
+        }
     }
 
     /**
