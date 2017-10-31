@@ -6,6 +6,7 @@ use Payum\Core\Exception\RequestNotSupportedException;
 use Payum\Core\GatewayAwareTrait;
 use Payum\Core\Model\PaymentInterface;
 use Payum\Core\Request\Convert;
+use Payum\Core\Bridge\Spl\ArrayObject;
 
 class ConvertPaymentAction implements ActionInterface
 {
@@ -18,12 +19,15 @@ class ConvertPaymentAction implements ActionInterface
      */
     public function execute($request)
     {
+        # these code doing nothing
         RequestNotSupportedException::assertSupports($this, $request);
 
         /** @var PaymentInterface $payment */
         $payment = $request->getSource();
 
-        throw new \LogicException('Not implemented');
+        $details = ArrayObject::ensureArrayObject($payment->getDetails());
+
+        $request->setResult((array) $details);
     }
 
     /**
@@ -35,6 +39,6 @@ class ConvertPaymentAction implements ActionInterface
             $request instanceof Convert &&
             $request->getSource() instanceof PaymentInterface &&
             $request->getTo() == 'array'
-        ;
+            ;
     }
 }
