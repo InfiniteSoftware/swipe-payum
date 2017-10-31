@@ -104,7 +104,7 @@ class Api
 
         $params = json_encode([
             'event' => 'payment.paid',
-            'url' => 'http://shop.ricberry.lv/en/order/'
+            'url' => 'test'
         ]);
 
         $authorization_message = $timestamp . ' POST /api/v0.5/webhooks/ ' . $params;
