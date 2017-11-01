@@ -62,8 +62,9 @@ class Api
             array(
                 'client' => array('email' => $order->getCustomer()->getEmail()),
                 'products' => $goods,
-                'success_redirect' => $input->getToken()->getAfterUrl(),
-                'language' => $order->getLocaleCode()
+//                'success_redirect' => $input->getToken()->getAfterUrl(),
+                'language' => $order->getLocaleCode(),
+                'comment' => $input->getFirstModel()->getDetails()['comment']
             )
         );
 

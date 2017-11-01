@@ -27,7 +27,7 @@ class ConvertPaymentAction implements ActionInterface
 
         $details = ArrayObject::ensureArrayObject($payment->getDetails());
 
-        $details['number'] = $request->getToken()->getHash();
+        $details['comment'] = $request->getToken()->getHash();
 
         $request->setResult((array) $details);
     }

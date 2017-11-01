@@ -49,9 +49,7 @@ class CaptureAction implements ActionInterface, ApiAwareInterface, GatewayAwareI
 
         $this->gateway->execute($status = new GetStatus($model));
         if ($status->isNew()) {
-            # TODO: change to payment()!!
-            $details = $this->api->createWebhook();
-            dump($details);
+            $details = $this->api->payment($request);
             throw new HttpRedirect($details['full_page_checkout']);
         }
     }

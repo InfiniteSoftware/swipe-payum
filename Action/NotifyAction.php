@@ -14,6 +14,8 @@ use Sylius\Component\Core\Model\PaymentInterface;
 use Sylius\Component\Core\Repository\PaymentRepositoryInterface;
 use Sylius\Component\Payment\PaymentTransitions;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Bridge\Monolog\Logger;
+use \Doctrine\ORM\EntityManager;
 
 class NotifyAction implements ActionInterface, GatewayAwareInterface
 {
@@ -29,16 +31,25 @@ class NotifyAction implements ActionInterface, GatewayAwareInterface
      */
     private $factory;
 
+    /** @var \Symfony\Bridge\Monolog\Logger  */
+    private $logger;
+    /** @var \Doctrine\ORM\EntityManager  */
+    private $manager;
+
     /**
      * @param PaymentRepositoryInterface $paymentRepository
      */
     public function __construct(
         PaymentRepositoryInterface $paymentRepository,
-        FactoryInterface $factory
+        FactoryInterface $factory,
+        Logger $logger,
+        EntityManager $manager
     )
     {
         $this->paymentRepository = $paymentRepository;
         $this->factory = $factory;
+        $this->logger = $logger;
+        $this->manager = $manager;
     }
     /**
      * {@inheritDoc}
@@ -60,11 +71,10 @@ class NotifyAction implements ActionInterface, GatewayAwareInterface
         }
         if ($found !== null) {
             $stateMachine = $this->factory->get($found, PaymentTransitions::GRAPH);
-            $stateMachine->apply('paid');
+            $this->logger->critical($stateMachine->apply('complete'));
+            $this->logger->critical($found->getId());
+            $this->manager->flush();
         }
-        $myfile = fopen("swiperesponse.txt", "w") or die("Unable to open file!");
-        fwrite($myfile, var_export($order, true));
-        fclose($myfile);
 
 
 //        $model = ArrayObject::ensureArrayObject($request->getModel());
