@@ -65,7 +65,7 @@ class NotifyAction implements ActionInterface, GatewayAwareInterface
         $base = $this->paymentRepository->findByState(PaymentInterface::STATE_NEW);
         $found = null;
         foreach ($base as $item) {
-            if ($item->getDetails()['hash'] === $order['number']) {
+            if ($item->getDetails()['comment'] === $order['comment']) {
                 $found = $item;
             }
         }
@@ -75,10 +75,7 @@ class NotifyAction implements ActionInterface, GatewayAwareInterface
             $this->logger->critical($found->getId());
             $this->manager->flush();
         }
-
-
 //        $model = ArrayObject::ensureArrayObject($request->getModel());
-
     }
 
     /**

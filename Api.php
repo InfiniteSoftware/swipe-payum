@@ -2,8 +2,8 @@
 namespace Payum\Swipe;
 
 use Http\Message\MessageFactory;
-use Payum\Core\Exception\Http\HttpException;
 use Payum\Core\HttpClientInterface;
+use Payum\Core\Bridge\Spl\ArrayObject;
 
 class Api
 {
@@ -20,7 +20,10 @@ class Api
     /**
      * @var array
      */
-    protected $options = [];
+    protected $options = [
+        'publicKey' => null,
+        'privateKey' => null,
+    ];
 
     /**
      * @param array               $options
@@ -31,6 +34,12 @@ class Api
      */
     public function __construct(array $options, HttpClientInterface $client, MessageFactory $messageFactory)
     {
+        $options = ArrayObject::ensureArrayObject($options);
+        $options->defaults($this->options);
+        $options->validateNotEmpty(array(
+            'publicKey',
+            'privateKey',
+        ));
         $this->options = $options;
         $this->client = $client;
         $this->messageFactory = $messageFactory;
@@ -44,8 +53,8 @@ class Api
         /** @var \Sylius\Component\Core\Model\OrderInterface $order */
         $order = $input->getFirstModel()->getOrder();
 
-        $public_key = '7b6200442bc5522bbcf2a36dc2a9da81';
-        $private_key = '60d72289c30faf7fd2a241c38b8f2707dac477fd06671cc2b8ee8423907640cc';
+        $public_key = $this->options['publicKey'];
+        $private_key = $this->options['privateKey'];
         $timestamp = (string) time();
 
         $goods = [];
@@ -99,8 +108,8 @@ class Api
     }
 
     public function createWebhook() {
-        $public_key = 'test';
-        $private_key = 'test';
+        $public_key = $this->options['publicKey'];
+        $private_key = $this->options['privateKey'];
         $timestamp = (string) time();
 
         $params = json_encode([

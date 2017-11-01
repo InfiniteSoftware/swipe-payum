@@ -30,10 +30,6 @@ class SwipeGatewayFactory extends GatewayFactory
             'payum.action.status' => new StatusAction(),
             'payum.action.convert_payment' => new ConvertPaymentAction(),
         ]);
-
-        if (false == $config['payum.api']) {
-
-        }
         $config['payum.default_options'] = array(
             'sandbox' => false,
         );
