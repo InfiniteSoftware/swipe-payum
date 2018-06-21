@@ -28,7 +28,7 @@ class SwipeGatewayFactory extends GatewayFactory
             'payum.action.cancel' => new CancelAction(),
 //            'payum.action.notify' => new NotifyAction(),
             'payum.action.status' => new StatusAction(),
-            'payum.action.convert_payment' => new ConvertPaymentAction(),
+//            'payum.action.convert_payment' => new ConvertPaymentAction(),
         ]);
         $config['payum.default_options'] = array(
             'sandbox' => false,
