@@ -2,12 +2,16 @@
 namespace Payum\Swipe\Action;
 
 use Payum\Core\Action\ActionInterface;
+use Payum\Core\ApiAwareInterface;
+use Payum\Core\ApiAwareTrait;
 use Payum\Core\Bridge\Spl\ArrayObject;
 use Payum\Core\Exception\RequestNotSupportedException;
+use Payum\Core\Exception\UnsupportedApiException;
 use Payum\Core\GatewayAwareInterface;
 use Payum\Core\GatewayAwareTrait;
 use Payum\Core\Request\Notify;
 use Payum\Core\Request\Sync;
+use Payum\Swipe\Api;
 use SM\Factory\FactoryInterface;
 use Sylius\Bundle\PayumBundle\Extension\UpdatePaymentStateExtension;
 use Sylius\Component\Core\Model\PaymentInterface;
@@ -17,9 +21,12 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Bridge\Monolog\Logger;
 use \Doctrine\ORM\EntityManager;
 
-class NotifyAction implements ActionInterface, GatewayAwareInterface
+class NotifyAction implements ActionInterface, GatewayAwareInterface, ApiAwareInterface
 {
     use GatewayAwareTrait;
+    use ApiAwareTrait {
+        setApi as _setApi;
+    }
 
     /**
      * @var PaymentRepositoryInterface
@@ -31,9 +38,13 @@ class NotifyAction implements ActionInterface, GatewayAwareInterface
      */
     private $factory;
 
-    /** @var \Symfony\Bridge\Monolog\Logger  */
+    /**
+     * @var \Symfony\Bridge\Monolog\Logger
+     */
     private $logger;
-    /** @var \Doctrine\ORM\EntityManager  */
+    /**
+     * @var \Doctrine\ORM\EntityManager
+     */
     private $manager;
 
     /**
@@ -50,42 +61,60 @@ class NotifyAction implements ActionInterface, GatewayAwareInterface
         $this->factory = $factory;
         $this->logger = $logger;
         $this->manager = $manager;
+        $this->apiClass = Api::class;
     }
+
     /**
      * {@inheritDoc}
      *
      * @param Request $request
+     * @throws \Doctrine\ORM\OptimisticLockException
+     * @throws \SM\SMException
      */
     public function execute($request)
     {
         RequestNotSupportedException::assertSupports($this, $request);
         $order = $request->getModel()->request->all();
-        if ($order === null) return;
 
+        if ($order === null) {
+            return;
+        }
         $base = $this->paymentRepository->findByState(PaymentInterface::STATE_NEW);
+        $order = $request->getModel()->request->all();
+        if ($order === null) {
+            return;
+        }
         $found = null;
         foreach ($base as $item) {
-            if ($item->getDetails()['comment'] === $order['comment']) {
-                $found = $item;
+            if (array_key_exists('comment', $item->getDetails())) {
+                if ($item->getDetails()['comment'] === $order['comment']) {
+                    $found = $item;
+                }
             }
         }
-        if ($found !== null) {
-            $stateMachine = $this->factory->get($found, PaymentTransitions::GRAPH);
-            $this->logger->critical($stateMachine->apply('complete'));
-            $this->logger->critical($found->getId());
-            $this->manager->flush();
+
+        if ($found) {
+            $this->logger->critical('trying to fraud a payment!', ['Payum']);
+        } else {
+            $this->logger->addInfo('order is paid', ['Payum']);
         }
-//        $model = ArrayObject::ensureArrayObject($request->getModel());
     }
+
+    public function setApi($api)
+    {
+        if (false == $api instanceof Api) {
+            throw new UnsupportedApiException('Not supported API class.');
+        }
+
+        $this->_setApi($api);
+    }
+
 
     /**
      * {@inheritDoc}
      */
     public function supports($request)
     {
-        return
-            $request instanceof Notify/* &&
-            $request->getModel() instanceof \ArrayAccess*/
-            ;
+        return $request instanceof Notify;
     }
 }

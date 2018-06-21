@@ -13,11 +13,6 @@ class Api
     protected $client;
 
     /**
-     * @var MessageFactory
-     */
-    protected $messageFactory;
-
-    /**
      * @var array
      */
     protected $options = [
@@ -28,11 +23,10 @@ class Api
     /**
      * @param array               $options
      * @param HttpClientInterface $client
-     * @param MessageFactory      $messageFactory
      *
      * @throws \Payum\Core\Exception\InvalidArgumentException if an option is invalid
      */
-    public function __construct(array $options, HttpClientInterface $client, MessageFactory $messageFactory)
+    public function __construct(array $options, HttpClientInterface $client)
     {
         $options = ArrayObject::ensureArrayObject($options);
         $options->defaults($this->options);
@@ -42,7 +36,6 @@ class Api
         ));
         $this->options = $options;
         $this->client = $client;
-        $this->messageFactory = $messageFactory;
     }
 
     /**
@@ -55,7 +48,7 @@ class Api
 
         $public_key = $this->options['publicKey'];
         $private_key = $this->options['privateKey'];
-        $timestamp = (string) time();
+        $timestamp = $input->getFirstModel()->getDetails()['referenceId'];
 
         $goods = [];
         /** @var \Sylius\Component\Core\Model\OrderItemInterface[] $items */
@@ -63,17 +56,23 @@ class Api
         for ($i=0; $i < count($items); $i++) {
             $goods[$i]['description'] =
                 $items[$i]->getProduct()->getTranslation($order->getLocaleCode())->getName();
-            $goods[$i]['price'] = $items[$i]->getTotal()/100;
+            $goods[$i]['price'] = $items[$i]->getUnitPrice() / 100;
             $goods[$i]['quantity'] = $items[$i]->getQuantity();
         }
+
+        $shipping['description'] = $order->getShipments()->first()->getMethod()->getName();
+        $shipping['price'] = $order->getShippingTotal() / 100;
+        $shipping['quantity'] = 1;
+        $goods[] = $shipping;
 
         $params = json_encode(
             array(
                 'client' => array('email' => $order->getCustomer()->getEmail()),
                 'products' => $goods,
-//                'success_redirect' => $input->getToken()->getAfterUrl(),
+                # TODO: should be router
+//                'success_redirect' => 'localhost/payment/notify/unsafe/swipe',
                 'language' => $order->getLocaleCode(),
-                'comment' => $input->getFirstModel()->getDetails()['comment']
+                'comment' => $timestamp
             )
         );
 
@@ -86,54 +85,19 @@ class Api
                 'header' => $header,
                 'method' => 'POST',
                 'content' => $params,
-                'ignore_errors' => TRUE,
+                'ignore_errors' => true,
 
             ),
         );
         $context = stream_context_create($options);
-        $result = file_get_contents('https://swipe.lv/api/v0.5/invoices/ ', FALSE, $context);
-        /*$request = $this->messageFactory->createRequest("POST", $this->getApiEndpoint(), $options, http_build_query($fields));
+        $result = file_get_contents($this->getApiEndpoint(), false, $context);
 
-        $response = $this->client->send($request);
-
-        if (false == ($response->getStatusCode() >= 200 && $response->getStatusCode() < 300)) {
-            throw HttpException::factory($request, $response);
-        }*/
         return json_decode($result, true);
     }
 
     /** @return array */
     public function payment($model) {
         return $this->doRequest($model);
-    }
-
-    public function createWebhook() {
-        $public_key = $this->options['publicKey'];
-        $private_key = $this->options['privateKey'];
-        $timestamp = (string) time();
-
-        $params = json_encode([
-            'event' => 'payment.paid',
-            'url' => 'test'
-        ]);
-
-        $authorization_message = $timestamp . ' POST /api/v0.5/webhooks/ ' . $params;
-        $authorization = hash_hmac('sha256', $authorization_message, $private_key);
-        $authorization_header = $public_key . ',' . $timestamp . ',' . $authorization;
-        $header = "Content-type: application/json\r\nAuthorization: " . $authorization_header;
-        $options = array(
-            'http' => array(
-                'header' => $header,
-                'method' => 'POST',
-                'content' => $params,
-                'ignore_errors' => TRUE,
-
-            ),
-        );
-        $context = stream_context_create($options);
-        $result = file_get_contents('https://swipe.lv/api/v0.5/webhooks/ ', FALSE, $context);
-
-        return json_decode($result, true);
     }
 
     /**
