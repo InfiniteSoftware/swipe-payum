@@ -7,10 +7,25 @@ use Payum\Core\GatewayAwareTrait;
 use Payum\Core\Model\PaymentInterface;
 use Payum\Core\Request\Convert;
 use Payum\Core\Bridge\Spl\ArrayObject;
+use Symfony\Component\Routing\Router;
 
 class ConvertPaymentAction implements ActionInterface
 {
     use GatewayAwareTrait;
+
+    /**
+     * @var Router
+     */
+    private $router;
+
+    /**
+     * ConvertPaymentAction constructor.
+     * @param Router $router
+     */
+    public function __construct(Router $router)
+    {
+        $this->router = $router;
+    }
 
     /**
      * {@inheritDoc}
@@ -26,8 +41,10 @@ class ConvertPaymentAction implements ActionInterface
         $payment = $request->getSource();
 
         $details = ArrayObject::ensureArrayObject($payment->getDetails());
-
         $details['referenceId'] = (string)time();
+        $details['success_url'] = $this->router->generate('sylius_shop_order_thank_you', [
+            # TODO: pass order localeCode
+        ]);
 
         $request->setResult((array) $details);
     }

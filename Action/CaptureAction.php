@@ -10,11 +10,11 @@ use Payum\Core\Reply\HttpRedirect;
 use Payum\Core\Request\Capture;
 use Payum\Core\Exception\RequestNotSupportedException;
 use Payum\Core\Request\GetHttpRequest;
-use Payum\Core\Request\GetHumanStatus;
 use Payum\Swipe\Api;
 use Sylius\Bundle\PayumBundle\Provider\PaymentDescriptionProviderInterface;
 use Sylius\Bundle\PayumBundle\Request\GetStatus;
 use Payum\Core\Action\ActionInterface;
+use Symfony\Bridge\Monolog\Logger;
 
 class CaptureAction implements ActionInterface, ApiAwareInterface, GatewayAwareInterface
 {
@@ -24,14 +24,19 @@ class CaptureAction implements ActionInterface, ApiAwareInterface, GatewayAwareI
      * @var PaymentDescriptionProviderInterface
      */
     private $paymentDescriptionProvider;
+    /**
+     * @var Logger
+     */
+    private $logger;
 
     /**
      * @param PaymentDescriptionProviderInterface $paymentDescriptionProvider
      */
-    public function __construct(PaymentDescriptionProviderInterface $paymentDescriptionProvider)
+    public function __construct(PaymentDescriptionProviderInterface $paymentDescriptionProvider, Logger $logger)
     {
         $this->paymentDescriptionProvider = $paymentDescriptionProvider;
         $this->apiClass = Api::class;
+        $this->logger = $logger;
     }
 
     /**
@@ -49,6 +54,9 @@ class CaptureAction implements ActionInterface, ApiAwareInterface, GatewayAwareI
 
         $this->gateway->execute($status = new GetStatus($model));
         if ($status->isNew()) {
+            $this->logger->addInfo('Order ' .
+                $request->getFirstModel()->getOrder()->getNumber() .
+                ' redirected to paying form', ['Payum']);
             $details = $this->api->payment($request);
             throw new HttpRedirect($details['full_page_checkout']);
         }

@@ -4,19 +4,15 @@ namespace Payum\Swipe\Action;
 use Payum\Core\Action\ActionInterface;
 use Payum\Core\ApiAwareInterface;
 use Payum\Core\ApiAwareTrait;
-use Payum\Core\Bridge\Spl\ArrayObject;
 use Payum\Core\Exception\RequestNotSupportedException;
 use Payum\Core\Exception\UnsupportedApiException;
 use Payum\Core\GatewayAwareInterface;
 use Payum\Core\GatewayAwareTrait;
 use Payum\Core\Request\Notify;
-use Payum\Core\Request\Sync;
 use Payum\Swipe\Api;
 use SM\Factory\FactoryInterface;
-use Sylius\Bundle\PayumBundle\Extension\UpdatePaymentStateExtension;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Sylius\Component\Core\Repository\PaymentRepositoryInterface;
-use Sylius\Component\Payment\PaymentTransitions;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Bridge\Monolog\Logger;
 use \Doctrine\ORM\EntityManager;
@@ -96,7 +92,7 @@ class NotifyAction implements ActionInterface, GatewayAwareInterface, ApiAwareIn
         if ($found) {
             $this->logger->critical('trying to fraud a payment!', ['Payum']);
         } else {
-            $this->logger->addInfo('order is paid', ['Payum']);
+            $this->logger->addInfo('order has paid', ['Payum']);
         }
     }
 
